@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 
@@ -7,6 +7,7 @@ const AdminMenu = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -15,6 +16,24 @@ const AdminMenu = () => {
     }
     setUser(currentUser);
   }, [navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleLogout = () => {
     authService.logout();
@@ -37,7 +56,7 @@ const AdminMenu = () => {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none md:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none"
       >
         <svg
           className="w-6 h-6"
@@ -64,9 +83,10 @@ const AdminMenu = () => {
 
       {/* Sliding Menu */}
       <div
+        ref={menuRef}
         className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 md:static md:w-1/4`}
+        } `}
       >
         <div className="p-4">
           <div className="flex justify-between items-center mb-6">
